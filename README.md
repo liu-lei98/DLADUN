@@ -47,3 +47,11 @@ This repository contains the official PyTorch implementation of our paper:
 
 # Install dependencies
 - pip install -r requirements.txt
+
+### Experiement
+
+>- Following TSA-Net and DGSMP, we use the CAVE dataset (cave_1024_28) as the simulation training set. Both the CAVE (CAVE_512_28) and KAIST (KAIST_CVPR2021) datasets are used as the real training set.
+>- Training for Simulation: python train.py
+>- Training for Real: python train_real.py
+>- Testing for Simulation: python test.py
+>- Result:[Baidu Disk](https://pan.baidu.com/s/1oLF10q3ghTuFu1p-4R9bDA?pwd=q27j)
