@@ -17,17 +17,17 @@ This repository contains the official PyTorch implementation of our paper:
 
 ## 🏗️ Network Architecture
 <div align="center">
-  <img src="https://github.com/liu-lei98/IDC-Mamba/blob/main/Figures/overall.png"   alt="">
-  <p><em>Figure 1: The overall architecture of IDC-Mamba </em></p>
-  <img src="https://github.com/liu-lei98/IDC-Mamba/blob/main/Figures/subfigure.png" alt="">
-  <p><em>Figure 2: The overall architecture of denoiser </em></p>
-  <img src="https://github.com/liu-lei98/IDC-Mamba/blob/main/Figures/ZOOM_SIM_5.png"  alt="">
+  <img src="https://github.com/liu-lei98/DLADUN/blob/main/Figures/overall.png"   alt="">
+  <p><em>Figure 1: The overall architecture of DLADUN </em></p>
+  <img src="https://github.com/liu-lei98/DLADUN/blob/main/Figures/subfigure.png" alt="">
+  <p><em>Figure 2: The overall architecture of sub-models </em></p>
+  <img src="https://github.com/liu-lei98/DLADUN/blob/main/Figures/ZOOM_SIM_5.png"  alt="">
   <p><em>Figure 3: The Visual Comparison </em></p>
-  <img src="https://github.com/liu-lei98/IDC-Mamba/blob/main/Figures/ZOOM_SIM_8.png"  alt="">
+  <img src="https://github.com/liu-lei98/DLADUN/blob/main/Figures/ZOOM_SIM_8.png"  alt="">
   <p><em>Figure 3: The Visual Comparison </em></p>
-  <img src="https://github.com/liu-lei98/IDC-Mamba/blob/main/Figures/ZOOM-REAL-1.png"  alt="">
+  <img src="https://github.com/liu-lei98/DLADUN/blob/main/Figures/ZOOM-REAL-1.png"  alt="">
   <p><em>Figure 3: The Visual Comparison </em></p>
-  <img src="https://github.com/liu-lei98/IDC-Mamba/blob/main/Figures/ZOOM-REAL-4.png"  alt="">
+  <img src="https://github.com/liu-lei98/DLADUN/blob/main/Figures/ZOOM-REAL-4.png"  alt="">
   <p><em>Figure 3: The Visual Comparison </em></p>
 </div>
 
@@ -42,8 +42,8 @@ This repository contains the official PyTorch implementation of our paper:
 ### Installation
 
 # Create and activate conda environment
-- conda create -n IDC-Mamba python=3.8
-- conda activate IDC-Mamba
+- conda create -n DLADUN python=3.8
+- conda activate DLADUN
 
 # Install dependencies
 - pip install -r requirements.txt
