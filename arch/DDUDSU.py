@@ -175,10 +175,7 @@ class GradientDescent(nn.Module):
     def __init__(self,dim) -> None:
         super(GradientDescent,self).__init__()
         self.Phi = PhiTPhi(dim,32)
-        self.A = DynamicInference(dim,32)
-        self.PhiT = PhiTPhi(dim,32)
-        self.AT = DynamicInference(dim,32)
-        self.Rho = nn.Parameter(torch.Tensor([0.5]))
+    
 
     def forward(self,x,phi,Y):
 
@@ -187,10 +184,7 @@ class GradientDescent(nn.Module):
         phi = self.Phi(phi)
         AX = self.A(x,phi)
         phit = self.PhiT(phi)
-        res = y2x(x2y(AX)- Y)
-        ATres = self.AT(res,phit)  
-        x_ = x - self.Rho*ATres
-
+    
         return x_, phi
 
 class HighChannel(nn.Module):
@@ -202,9 +196,7 @@ class HighChannel(nn.Module):
         self.conv_layer1 = torch.nn.Conv2d(in_channels=in_channels * 2 ,
                                           out_channels=hidden_channels * 2,
                                           kernel_size=1, stride=1, padding=0, bias=False)
-        self.conv_layer2 = torch.nn.Conv2d(in_channels=hidden_channels * 2,
-                                          out_channels=in_channels * 2,
-                                          kernel_size=1, stride=1, padding=0, bias=False)
+
 
         self.fft_norm = fft_norm
 
@@ -220,9 +212,7 @@ class HighChannel(nn.Module):
 
         ffted = self.conv_layer2(F.gelu(self.conv_layer1(ffted)))  # (batch, c*2, h, w/2+1)
 
-        ffted = ffted.view((batch, -1, 2,) + ffted.size()[2:]).permute(
-            0, 1, 3, 4, 2).contiguous()  # (batch,c, t, h, w/2+1, 2)
-        ffted = torch.complex(ffted[..., 0], ffted[..., 1])
+
 
         ifft_shape_slice = x.shape[-2:]
         output = torch.fft.irfftn(ffted, s=ifft_shape_slice, dim=fft_dim, norm=self.fft_norm)
@@ -234,10 +224,6 @@ class OriGatedFeedForward(nn.Module):
         super(OriGatedFeedForward, self).__init__()
 
         hidden_features = int(dim*ffn_expansion_factor)
-
-        self.project_in = nn.Conv2d(dim, hidden_features*2, kernel_size=1, bias=bias)
-
-        self.dwconv = nn.Conv2d(hidden_features*2, hidden_features*2, kernel_size=3, stride=1, padding=1, groups=hidden_features*2, bias=bias)
 
         self.project_out = nn.Conv2d(hidden_features, dim, kernel_size=1, bias=bias)
 
@@ -258,12 +244,7 @@ class Attention(nn.Module):
         self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1))
 
         self.qkv = nn.Conv2d(dim, dim * 3, kernel_size=1, bias=bias)
-        self.qkv_dwconv = nn.Conv2d(dim * 3, dim * 3, kernel_size=3, stride=1, padding=1, groups=dim * 3, bias=bias)
-        self.project_out = nn.Conv2d(dim, dim, kernel_size=1, bias=bias)
 
-        self.attn1 = torch.nn.Parameter(torch.tensor([0.2]), requires_grad=True)
-        self.attn2 = torch.nn.Parameter(torch.tensor([0.2]), requires_grad=True)
-        self.attn3 = torch.nn.Parameter(torch.tensor([0.2]), requires_grad=True)
         self.attn4 = torch.nn.Parameter(torch.tensor([0.2]), requires_grad=True)
 
     def forward(self, x):
@@ -285,12 +266,7 @@ class Attention(nn.Module):
         mask1 = torch.zeros(b, self.num_heads, C, C, device=x.device, requires_grad=False)
         mask2 = torch.zeros(b, self.num_heads, C, C, device=x.device, requires_grad=False)
         mask3 = torch.zeros(b, self.num_heads, C, C, device=x.device, requires_grad=False)
-        mask4 = torch.zeros(b, self.num_heads, C, C, device=x.device, requires_grad=False)
 
-        attn = (q @ k.transpose(-2, -1)) * self.temperature
-
-        index = torch.topk(attn, k=int(C/2), dim=-1, largest=True)[1]
-        mask1.scatter_(-1, index, 1.)
         attn1 = torch.where(mask1 > 0, attn, torch.full_like(attn, float('-inf')))
 
         index = torch.topk(attn, k=int(C*2/3), dim=-1, largest=True)[1]
@@ -298,21 +274,7 @@ class Attention(nn.Module):
         attn2 = torch.where(mask2 > 0, attn, torch.full_like(attn, float('-inf')))
 
         index = torch.topk(attn, k=int(C*3/4), dim=-1, largest=True)[1]
-        mask3.scatter_(-1, index, 1.)
-        attn3 = torch.where(mask3 > 0, attn, torch.full_like(attn, float('-inf')))
 
-        index = torch.topk(attn, k=int(C*4/5), dim=-1, largest=True)[1]
-        mask4.scatter_(-1, index, 1.)
-        attn4 = torch.where(mask4 > 0, attn, torch.full_like(attn, float('-inf')))
-
-        attn1 = attn1.softmax(dim=-1)
-        attn2 = attn2.softmax(dim=-1)
-        attn3 = attn3.softmax(dim=-1)
-        attn4 = attn4.softmax(dim=-1)
-
-        out1 = (attn1 @ v)
-        out2 = (attn2 @ v)
-        out3 = (attn3 @ v)
         out4 = (attn4 @ v)
 
         out = out1 * self.attn1 + out2 * self.attn2 + out3 * self.attn3 + out4 * self.attn4
@@ -342,8 +304,7 @@ class mixer(nn.Module):
 class STB(nn.Module):
     def __init__(self, dim, num_heads, ffn_expansion_factor=2.66, bias=False, pool_size=2):
         super(STB, self).__init__()
-        self.norm1 = LayerNorm(dim)
-        self.attn = mixer(dim, num_heads, bias, pool_size)
+        self.norm1 = LayerNorm(dimeads, bias, pool_size)
         self.norm2 = LayerNorm(dim)
         self.ffn = OriGatedFeedForward(dim, ffn_expansion_factor, bias)
 
@@ -379,13 +340,7 @@ class Denoiser2(nn.Module):
         self.proj = nn.Sequential(
             nn.Conv2d(in_dim+hidden_dim,dim,1,1),
             STB(dim,4)
-        )
-        self.thr = softthr(dim)
-        self.proj_forward = nn.Sequential(            
-            nn.Conv2d(dim,dim, 3, 1, 1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(dim,dim, 3, 1, 1, bias=False)
-        )
+
         self.proj_backward = nn.Sequential(            
             nn.Conv2d(dim,dim, 3, 1, 1, bias=False),
             nn.ReLU(inplace=True),
@@ -413,9 +368,6 @@ class Denoiser2(nn.Module):
 
         x_bd = self.proj_backward(x_thr)
 
-        x_proj_back = self.proj_back(torch.cat([x_bd,x_proj],dim=1))
-
-        x_res = self.proj_backward(x_fd) - x_proj
 
         x_out = x_ori+ x_proj_back
         hidden_fea = self.hidden(torch.cat([x_bd,x_proj],dim=1)) + hidden_fea
@@ -456,13 +408,6 @@ class ASPP(nn.Module):
 
         modules.append(ASPPPooling(in_channels, out_channels))
 
-        self.convs = nn.ModuleList(modules)
-
-        self.project = nn.Sequential(
-            nn.Conv2d(len(self.convs) * out_channels, out_channels, 1, bias=False),
-            nn.ReLU(),
-            nn.Dropout(0.5))
-
     def forward(self, x):
         res = []
         for conv in self.convs:
@@ -497,10 +442,6 @@ class ProPorcess(nn.Module):
         self.decoder_layers = nn.ModuleList([])
         for i in range(2):
             self.decoder_layers.append(nn.ModuleList([
-                nn.ConvTranspose2d(dim_stage, dim_stage // 2, stride=2, kernel_size=2, padding=0, output_padding=0),
-                nn.Conv2d(dim_stage // 2, dim_stage, 1, 1, 0, bias=False),
-                nn.Conv2d(dim_stage, dim_stage, 3, 1, 1, bias=False, groups=dim_stage),
-                nn.Conv2d(dim_stage, dim_stage // 2, 1, 1, 0, bias=False),
             ]))
             dim_stage //= 2
 
@@ -596,9 +537,6 @@ class GradientDescentP(nn.Module):
     def __init__(self,dim) -> None:
         super(GradientDescentP,self).__init__()
         self.Phi = PhiTPhi(dim,32)
-        self.A = DynamicInference(dim,32)
-        self.PhiT = PhiTPhi(dim,32)
-        self.AT = DynamicInference(dim,32)
         self.Rho = nn.Parameter(torch.Tensor([0.5]))
 
     def forward(self,x,degradation,Y):
@@ -606,9 +544,6 @@ class GradientDescentP(nn.Module):
         assert(x.shape == degradation.shape)
 
         phi = self.Phi(degradation)
-        AX = self.A(x,phi)
-        phit = self.PhiT(phi)
-        res = y2x(x2y(AX)- Y)
         ATres = self.AT(res,phit) 
         x_ = x - self.Rho*ATres
 
@@ -625,7 +560,7 @@ class PhaseP(nn.Module):
         degradation = self.Degradation(degradation,meas_HSI,x)
         v = self.GP(x,degradation,Y)
         xk, sym_k ,hidden_fea= self.Denoiser(v,hidden_fea,x)
-        return xk, sym_k, degradation, hidden_fea
+        return xk, 
 
 class DDUDSU(nn.Module):
     def __init__(self,dim,stage) -> None:
@@ -648,7 +583,7 @@ class DDUDSU(nn.Module):
         degradation = phi
         layers_sym = []
         for phase in self.Phases:
-            x, sym_k, degradation, hidden_fea = phase(x, degradation, Y, meas_HSI, hidden_fea) #x, degradation, Y, meas_HSI, hidden_fea
+            x, sym_k, = phase(x, degradation, Y, meas_HSI, hidden_fea) #x, degradation, Y, meas_HSI, hidden_fea
             layers_sym.append(sym_k)
         return x,layers_sym
     
