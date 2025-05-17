@@ -14,7 +14,7 @@ This repository contains the official PyTorch implementation of our paper:
 
 **"Degradation Learning Adaptive Deep Unfolding Network for Spectral Compressive Imaging"**
 
-** more details will be released after the journal's publication.**
+**more details will be released after the journal's publication.**
 
 ## 🏗️ Network Architecture
 <div align="center">
